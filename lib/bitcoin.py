@@ -76,8 +76,8 @@ class NetworkConstants:
     def set_mainnet(cls):
         cls.TESTNET = False
         cls.WIF_PREFIX = 0x80
-        cls.ADDRTYPE_P2PKH = 0
-        cls.ADDRTYPE_P2SH = 5
+        cls.ADDRTYPE_P2PKH = [0x1C, 0xB8]
+        cls.ADDRTYPE_P2SH = [0x1C, 0xBD]
         cls.SEGWIT_HRP = "bc"
         cls.HEADERS_URL = "https://headers.electrum.org/blockchain_headers"
         cls.GENESIS = "0007104ccda289427919efc39dc9e4d499804b7bebc22df55f8b834301260602"
@@ -88,8 +88,8 @@ class NetworkConstants:
     def set_testnet(cls):
         cls.TESTNET = True
         cls.WIF_PREFIX = 0xef
-        cls.ADDRTYPE_P2PKH = 111
-        cls.ADDRTYPE_P2SH = 196
+        cls.ADDRTYPE_P2PKH = [0x1D, 0x25]
+        cls.ADDRTYPE_P2SH = [0x1C, 0xBA]
         cls.SEGWIT_HRP = "tb"
         cls.HEADERS_URL = "https://headers.electrum.org/testnet_headers"
         cls.GENESIS = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
@@ -395,15 +395,16 @@ def hash_160(public_key):
 
 
 def hash160_to_b58_address(h160, addrtype, witness_program_version=1):
-    s = bytes([addrtype])
+    s = bytes([addrtype[0]])
+    s += bytes([addrtype[1]])
     s += h160
     return base_encode(s+Hash(s)[0:4], base=58)
 
 
 def b58_address_to_hash160(addr):
     addr = to_bytes(addr, 'ascii')
-    _bytes = base_decode(addr, 25, base=58)
-    return _bytes[0], _bytes[1:21]
+    _bytes = base_decode(addr, 26, base=58)
+    return [_bytes[0], _bytes[1]], _bytes[2:22]
 
 
 def hash160_to_p2pkh(h160):
